@@ -22,17 +22,17 @@ def main():
     arming_client = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
     set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
 
-    # the setpoint publishing rate MUST be faster than 2Hz
+    # the setpoint publishing rate MUST be faster than 2Hz for offboard control
     rate = rospy.Rate(10) # Hz
 
     # wait for FCU connection
     while not rospy.is_shutdown() and current_state.connected:
         rate.sleep()
 
-    pose = PoseStamped();
-    pose.pose.position.x = 0;
-    pose.pose.position.y = 0;
-    pose.pose.position.z = 2;
+    pose = PoseStamped()
+    pose.pose.position.x = 0
+    pose.pose.position.y = 0
+    pose.pose.position.z = 2
 
     # send a few setpoints before starting
     for i in range(100):
@@ -47,8 +47,8 @@ def main():
     last_request = rospy.Time.now()
 
     while not rospy.is_shutdown:
-        local_pos_pub.publish(pose);
-        rate.sleep();
+        local_pos_pub.publish(pose)
+        rate.sleep()
     
 def state_cb(msg):
     current_state = msg
