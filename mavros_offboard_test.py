@@ -4,7 +4,6 @@
  brief offboard example node, written with mavros version xxx, px4 flight
  stack and testing in Gazebo SITL
 '''
-# TODO: look at what "HIL gps" is
 
 import rospy
 
@@ -41,12 +40,8 @@ def main():
             local_pos_pub.publish(pose)
             rate.sleep()
 
-    # offb_set_mode = SetMode()
-    # offb_set_mode.custom_mode = 'OFFBOARD'
+    # set to offboard mode, then arm
     set_mode_client = (0, 'OFFBOARD')
-
-    # arm_cmd = CommandBool()
-    # arm_cmd.value = True
     arming_client(True)
 
     last_request = rospy.Time.now()

@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../nsf-student-competition/.idea/untitled.iml" filepath="$PROJECT_DIR$/../nsf-student-competition/.idea/untitled.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/NSF-Student-UAV-Competition.iml" filepath="$PROJECT_DIR$/.idea/NSF-Student-UAV-Competition.iml" />
+      <module fileurl="file://$USER_HOME$/nsf-student-competition/.idea/untitled.iml" filepath="$USER_HOME$/nsf-student-competition/.idea/untitled.iml" />
     </modules>
   </component>
 </project>
