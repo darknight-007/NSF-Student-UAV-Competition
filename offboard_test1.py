@@ -1,11 +1,11 @@
 """
-testing offboard control on the energetics UAV
+testing offboard control with a simple takeoff script
 """
 
 import rospy
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
 
-TAKEOFF_HEIGHT = 1.0
+TAKEOFF_HEIGHT = 1.5
 TAKEOFF_INCREMENT = 0.005
 
 
@@ -14,14 +14,14 @@ class OffbPosCtl:
     des_pose = PoseStamped()
 
     def __init__(self):
-        rospy.init_node('offboard_energetics', anonymous=True)
+        rospy.init_node('offboard_test', anonymous=True)
         pose_pub = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped, queue_size=10)
         pose_sub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, callback=self.pose_cb)
 
         rate = rospy.Rate(10)  # Hz
         rate.sleep()
         self.des_pose = self.copy_pose(self.curr_pose)
-        # print self.curr_pose
+        print self.curr_pose
 
         while not rospy.is_shutdown():
             if self.curr_pose.pose.position.z < TAKEOFF_HEIGHT and self.des_pose.pose.position.z < TAKEOFF_HEIGHT:
@@ -30,7 +30,7 @@ class OffbPosCtl:
                 self.des_pose.pose.position.z = TAKEOFF_HEIGHT
 
             pose_pub.publish(self.des_pose)
-            # print self.des_pose.pose
+            # print self.des_pose, self.curr_pose
             rate.sleep()
 
     def copy_pose(self, pose):

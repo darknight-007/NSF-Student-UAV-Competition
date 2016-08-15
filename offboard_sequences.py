@@ -10,9 +10,9 @@ import numpy as np
 
 TAKEOFF_HEIGHT = 1.0  # metres
 MOTION_INCREMENT = 0.01  # metres
-HOVER_DURATION = 15  # seconds
-CIRCLE_DURATION = 10  # seconds
-CIRCLE_RAD = 1.0  # metres
+HOVER_DURATION = 20  # seconds
+CIRCLE_DURATION = 30  # seconds
+CIRCLE_RAD = 1  # metres
 NCIRCLES = 1.0  # number of circles
 
 
@@ -35,19 +35,6 @@ class OffbPosCtl:
         self.des_pose = self.copy_pose(self.curr_pose)
         print self.init_pose
 
-    # def circle(self):
-    #     t_init = rospy.get_time()
-    #     t = 0
-    #     while t <= NCIRCLES:
-    #         t = rospy.Duration.from_sec(rospy.get_time() - t_init)/rospy.Duration(CIRCLE_DURATION)
-    #         theta = t*2*math.pi
-    #         self.des_pose.pose.position.x = CIRCLE_RAD*math.cos(theta)
-    #         self.des_pose.pose.position.y = CIRCLE_RAD*math.sin(theta)
-    #
-    #         self.pose_pub.publish(self.des_pose)
-    #         # print self.des_pose.pose
-    #         self.rate.sleep()
-
     def takeoff(self):
         """
         UAV will takeoff to a height defined as TAKEOFF_HEIGHT, maintaining the initial x,y coordinates and orientation.
@@ -62,33 +49,87 @@ class OffbPosCtl:
                     self.des_pose.pose.position.z = TAKEOFF_HEIGHT
 
                 self.pose_pub.publish(self.des_pose)
-                # print self.des_pose.pose
+                # print self.des_pose
                 self.rate.sleep()
 
     def land(self):
         """
         UAV will land at the current x,y position, maintaining orientation.
         """
-        print "\noffboard landing initiated"
+        print "offboard landing initiated"
+        init_z = self.init_pose.pose.position.z
+        landed = False
         while not rospy.is_shutdown():
-            if self.curr_pose.pose.position.z > self.init_pose.pose.position.z and self.curr_state.landed_state != 1:
-                self.des_pose.pose.position.z -= MOTION_INCREMENT
-                # print "moving down"
-            elif self.curr_state.landed_state == 1:
-                landed_pose = self.copy_pose(self.curr_pose)
-                self.des_pose = self.copy_pose(landed_pose)
+            while not landed:
+                if self.curr_state.landed_state != 1:
+                    self.des_pose.pose.position.z -= MOTION_INCREMENT
+                    self.pose_pub.publish(self.des_pose)
+                    # print self.des_pose
+                    self.rate.sleep()
+                else:
+                    landed = True
+                    landed_pose = self.copy_pose(self.curr_pose)
+                # print "landed: " + str(landed)
+
+            self.pose_pub.publish(landed_pose)  # TODO quad moves after landing. change mode?
+            # print landed_pose
+            self.rate.sleep()
+
+    def circle(self):
+        """
+        UAV will complete a circular path, around (0,0) at the current height and orientation.
+        """
+        print "circle path initiated"
+        t_init = rospy.get_time()
+        t = rospy.Duration(0)
+        while t <= rospy.Duration(7):
+            self.des_pose.pose.position.x = CIRCLE_RAD*1
+            self.des_pose.pose.position.y = CIRCLE_RAD*0
 
             self.pose_pub.publish(self.des_pose)
-            # print self.des_pose.pose
+            # print self.des_pose
             self.rate.sleep()
+            t = rospy.Duration.from_sec(rospy.get_time() - t_init)
+
+        t_init = rospy.get_time()
+        t = 0
+        while t <= NCIRCLES:
+            theta = t*2*math.pi
+            self.des_pose.pose.position.x = CIRCLE_RAD*math.cos(theta)
+            self.des_pose.pose.position.y = CIRCLE_RAD*math.sin(theta)
+
+            self.pose_pub.publish(self.des_pose)
+            # print self.des_pose
+            self.rate.sleep()
+            t = rospy.Duration.from_sec(rospy.get_time() - t_init) / rospy.Duration(CIRCLE_DURATION)
+
+    def square(self):
+        """
+        UAV will complete a circular path, around (0,0) at the current height and orientation.
+        """
+        print "square path initiated"
+        LENGTH = 1
+        coords = [(0, LENGTH), (LENGTH, LENGTH), (LENGTH, 0), (0, 0)]
+        for coord in coords:
+            t_init = rospy.get_time()
+            t = rospy.Duration(0)
+            while t <= rospy.Duration(8):
+                self.des_pose.pose.position.x = coord[0]
+                self.des_pose.pose.position.y = coord[1]
+                self.pose_pub.publish(self.des_pose)
+                # print self.des_pose
+                self.rate.sleep()
+                t = rospy.Duration.from_sec(rospy.get_time() - t_init)
 
     def copy_pose(self, pose):
         """
-        creates a deep copy of a PoseStamped object without the header
+        creates a copy of a PoseStamped object
         """
         pt = pose.pose.position
         quat = pose.pose.orientation
         copied_pose = PoseStamped()
+        copied_pose.header.frame_id = pose.header.frame_id
+        copied_pose.header.stamp = rospy.Time.now()
         copied_pose.pose.position = Point(pt.x, pt.y, pt.z)
         copied_pose.pose.orientation = Quaternion(quat.x, quat.y, quat.z, quat.w)
         return copied_pose
@@ -104,5 +145,6 @@ class OffbPosCtl:
 if __name__ == "__main__":
     offb = OffbPosCtl()
     offb.takeoff()
-    # offb.circle()
+    # offb.square()
+    offb.circle()
     offb.land()
