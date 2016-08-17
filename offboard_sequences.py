@@ -105,17 +105,18 @@ class OffbPosCtl:
 
     def square(self):
         """
-        UAV will complete a circular path, around (0,0) at the current height and orientation.
+        UAV will complete a square path, around (0,0) at the current height and orientation.
         """
         print "square path initiated"
-        LENGTH = 1
-        coords = [(0, LENGTH), (LENGTH, LENGTH), (LENGTH, 0), (0, 0)]
-        for coord in coords:
+        SIDE = 2
+        HALF_SIDE = SIDE/2
+        corners = [(HALF_SIDE, HALF_SIDE), (-HALF_SIDE, HALF_SIDE), (-HALF_SIDE, -HALF_SIDE), (HALF_SIDE, -HALF_SIDE)]
+        for corner in corners:
             t_init = rospy.get_time()
             t = rospy.Duration(0)
             while t <= rospy.Duration(8):
-                self.des_pose.pose.position.x = coord[0]
-                self.des_pose.pose.position.y = coord[1]
+                self.des_pose.pose.position.x = corner[0]
+                self.des_pose.pose.position.y = corner[1]
                 self.pose_pub.publish(self.des_pose)
                 # print self.des_pose
                 self.rate.sleep()
@@ -145,6 +146,6 @@ class OffbPosCtl:
 if __name__ == "__main__":
     offb = OffbPosCtl()
     offb.takeoff()
-    # offb.square()
+    offb.square()
     offb.circle()
     offb.land()

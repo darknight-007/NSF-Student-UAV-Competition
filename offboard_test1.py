@@ -1,5 +1,5 @@
 """
-testing offboard control with a simple takeoff script
+testing offboard positon control with a simple takeoff script
 """
 
 import rospy
@@ -16,16 +16,17 @@ class OffbPosCtl:
     def __init__(self):
         rospy.init_node('offboard_test', anonymous=True)
         pose_pub = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped, queue_size=10)
-        pose_sub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, callback=self.pose_cb)
+        mocap_sub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, callback=self.mocap_cb)
 
         rate = rospy.Rate(10)  # Hz
         rate.sleep()
         self.des_pose = self.copy_pose(self.curr_pose)
         print self.curr_pose
 
-        while not rospy.is_shutdown():
+        while not rospy.is_shutdown(): # TODO update time stamp?
             if self.curr_pose.pose.position.z < TAKEOFF_HEIGHT and self.des_pose.pose.position.z < TAKEOFF_HEIGHT:
                 self.des_pose.pose.position.z += TAKEOFF_INCREMENT
+            # self.des_pose.pose.position.z = TAKEOFF_HEIGHT
             else:
                 self.des_pose.pose.position.z = TAKEOFF_HEIGHT
 
@@ -33,15 +34,16 @@ class OffbPosCtl:
             # print self.des_pose, self.curr_pose
             rate.sleep()
 
-    def copy_pose(self, pose):
+    def copy_pose(self, pose): # TODO specify time stamp?
         pt = pose.pose.position
         quat = pose.pose.orientation
         copied_pose = PoseStamped()
+        copied_pose.header.frame_id = pose.header.frame_id
         copied_pose.pose.position = Point(pt.x, pt.y, pt.z)
         copied_pose.pose.orientation = Quaternion(quat.x, quat.y, quat.z, quat.w)
         return copied_pose
 
-    def pose_cb(self, msg):
+    def mocap_cb(self, msg):
         # print msg
         self.curr_pose = msg
 
