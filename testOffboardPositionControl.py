@@ -1,52 +1,58 @@
-#!/usr/bin/env python
-import roslib
+"""
+testing offboard positon control with a simple takeoff script
+"""
 
 import rospy
-from std_msgs.msg import Float64
-from geometry_msgs.msg import PoseStamped, Quaternion
-from std_msgs.msg import Header
-from tf.transformations import quaternion_from_euler
+from mavros_msgs.msg import State
+from geometry_msgs.msg import PoseStamped, Point, Quaternion
+
+TAKEOFF_HEIGHT = 10.5
+TAKEOFF_INCREMENT = 0.05
 
 
-class OffboardPositionControl:
-    x = 0
-    y = 0
-    z = 0
+class OffbPosCtl:
+    curr_pose = PoseStamped()
+    des_pose = PoseStamped()
 
     def __init__(self):
-        self.pubList = list()
-        self.posPub = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=10)
+        rospy.init_node('offboard_test', anonymous=True)
+        pose_pub = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped, queue_size=10)
+        mocap_sub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, callback=self.mocap_cb)
+        state_sub = rospy.Subscriber('/mavros/state', State, callback=self.state_cb)
 
-        rospy.init_node('pos_offboard', anonymous=True)
-        r = rospy.Rate(10)
+        rate = rospy.Rate(10)  # Hz
+        rate.sleep()
+        self.des_pose = self.copy_pose(self.curr_pose)
+        print self.curr_pose
+
+        while not rospy.is_shutdown(): # TODO update time stamp?
+
+            if self.curr_pose.pose.position.z < TAKEOFF_HEIGHT and self.des_pose.pose.position.z < TAKEOFF_HEIGHT:
+                self.des_pose.pose.position.z += TAKEOFF_INCREMENT
+            # self.des_pose.pose.position.z = TAKEOFF_HEIGHT
+            else:
+                self.des_pose.pose.position.z = TAKEOFF_HEIGHT
+
+            pose_pub.publish(self.des_pose)
+            # print self.des_pose, self.curr_pose
+            rate.sleep()
+
+    def copy_pose(self, pose): # TODO specify time stamp?
+        pt = pose.pose.position
+        quat = pose.pose.orientation
+        copied_pose = PoseStamped()
+        copied_pose.header.frame_id = pose.header.frame_id
+        copied_pose.pose.position = Point(pt.x, pt.y, pt.z)
+        copied_pose.pose.orientation = Quaternion(quat.x, quat.y, quat.z, quat.w)
+        return copied_pose
+
+    def mocap_cb(self, msg):
+        # print msg
+        self.curr_pose = msg
 
 
+    def state_cb(self,msg):
+        print msg.mode
 
-
-
-
-        while True:
-            timeNow = rospy.Time.now()
-            msg = PoseStamped()
-            msg.header = Header()
-            msg.header.frame_id = "base_footprint"
-            msg.header.stamp = rospy.Time.now()
-
-            msg.pose.position.x = self.x
-            msg.pose.position.y = self.y
-            msg.pose.position.z = self.z
-            msg.header.stamp = timeNow
-
-            self.posPub.publish(msg)
-            self.x += 0.0001
-            self.y += 0.0001
-            self.z += 0.0001
-
-            r.sleep()
-
-
-
-
-if __name__ == '__main__':
-    attControl = OffboardPositionControl()
-
+if __name__ == "__main__":
+    OffbPosCtl()
