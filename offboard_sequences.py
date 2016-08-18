@@ -101,7 +101,7 @@ class OffbPosCtl:
             self.pose_pub.publish(self.des_pose)
             # print self.des_pose
             self.rate.sleep()
-            t = rospy.Duration.from_sec(rospy.get_time() - t_init) / rospy.Duration(CIRCLE_DURATION)
+            t = (rospy.get_time() - t_init)/CIRCLE_DURATION
 
     def square(self):
         """
