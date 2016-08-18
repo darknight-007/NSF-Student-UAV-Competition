@@ -35,8 +35,8 @@ class OffbPosCtl:
                 else:
                     self.des_pose.pose.position.z = TAKEOFF_HEIGHT
 
-                pose_pub.publish(self.des_pose)
-                # print self.des_pose, self.curr_pose
+            pose_pub.publish(self.des_pose)
+            # print self.des_pose, self.curr_pose
             rate.sleep()
 
     def copy_pose(self, pose): # TODO specify time stamp?
