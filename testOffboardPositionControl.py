@@ -6,13 +6,14 @@ import rospy
 from mavros_msgs.msg import State
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
 
-TAKEOFF_HEIGHT = 10.5
+TAKEOFF_HEIGHT = 5
 TAKEOFF_INCREMENT = 0.05
 
 
 class OffbPosCtl:
     curr_pose = PoseStamped()
     des_pose = PoseStamped()
+    isReadyToFly = False
 
     def __init__(self):
         rospy.init_node('offboard_test', anonymous=True)
@@ -26,15 +27,16 @@ class OffbPosCtl:
         print self.curr_pose
 
         while not rospy.is_shutdown(): # TODO update time stamp?
+            if self.isReadyToFly:
+                print "sending commands"
+                if self.curr_pose.pose.position.z < TAKEOFF_HEIGHT and self.des_pose.pose.position.z < TAKEOFF_HEIGHT:
+                    self.des_pose.pose.position.z += TAKEOFF_INCREMENT
+                # self.des_pose.pose.position.z = TAKEOFF_HEIGHT
+                else:
+                    self.des_pose.pose.position.z = TAKEOFF_HEIGHT
 
-            if self.curr_pose.pose.position.z < TAKEOFF_HEIGHT and self.des_pose.pose.position.z < TAKEOFF_HEIGHT:
-                self.des_pose.pose.position.z += TAKEOFF_INCREMENT
-            # self.des_pose.pose.position.z = TAKEOFF_HEIGHT
-            else:
-                self.des_pose.pose.position.z = TAKEOFF_HEIGHT
-
-            pose_pub.publish(self.des_pose)
-            # print self.des_pose, self.curr_pose
+                pose_pub.publish(self.des_pose)
+                # print self.des_pose, self.curr_pose
             rate.sleep()
 
     def copy_pose(self, pose): # TODO specify time stamp?
@@ -52,7 +54,9 @@ class OffbPosCtl:
 
 
     def state_cb(self,msg):
-        print msg.mode
+        if(msg.mode=='OFFBOARD'):
+            self.isReadyToFly = True
+
 
 if __name__ == "__main__":
     OffbPosCtl()
