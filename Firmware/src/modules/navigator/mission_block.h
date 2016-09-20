@@ -125,10 +125,16 @@ protected:
 	bool _waypoint_yaw_reached;
 	hrt_abstime _time_first_inside_orbit;
 	hrt_abstime _action_start;
+	hrt_abstime _time_wp_reached;
 
 	actuator_controls_s _actuators;
 	orb_advert_t    _actuator_pub;
 	orb_advert_t	_cmd_pub;
+
+	control::BlockParamFloat _param_yaw_timeout;
+	control::BlockParamFloat _param_yaw_err;
+	control::BlockParamInt _param_vtol_wv_land;
+	control::BlockParamInt _param_vtol_wv_loiter;
 };
 
 #endif

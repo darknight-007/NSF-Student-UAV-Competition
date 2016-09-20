@@ -42,8 +42,8 @@ In a bit, you should see the ASCII PX4 art, and a message
 At this time open another terminal, and use 
 * roslaunch mavros gazebo-mavros.launch gui:=true
 
-You should now see both the Gazebo client, and an RQT window showing the camera inage panels, and a line plot for UAV height. 
-You will have to click the refresh buttons for the camera image view panels, and choose the front and down camera respectively from the dropdown. The height plot should start updating on its own.
+You should now see both the Gazebo client, and an RQT window showing the image-view panels, and a line plot for UAV height. 
+You will have to click the reload (circular arrow) buttons for the camera image streams to activate on RQT, and choose the front and down cameras respectively from the dropdowns. The height plot should start updating on its own.
 
 The next step is the same as non gazebo_ros mode. That is, in another terminal 
 * cd ~/catkin_ws/src/mavros/test_mavros/scripts
@@ -51,8 +51,8 @@ The next step is the same as non gazebo_ros mode. That is, in another terminal
 
 You should now see the UAV take off, and the camera images update accordingly. 
 
-*** It's advised that you close gazebo client at this time so that the controller simultion has maximum fidelity. <br/>
-*** do not use gui:=true when starting the gazebo-mavros.launch file for actual simulation use.
+*** It's advised that you close gazebo client at this time so that the controller simulation has maximum fidelity. <br/>
+*** Do not use gui:=true when starting the gazebo-mavros.launch file for actual simulation use.
 
 
 ------ UPSTREAM INFO-----
@@ -68,8 +68,8 @@ This repository contains the [PX4 Flight Core](http://px4.io), with the main app
 *   License: BSD 3-clause (see [LICENSE.md](https://github.com/PX4/Firmware/blob/master/LICENSE.md))
 *   Supported airframes (more experimental are supported):
   * [Multicopters](http://px4.io/portfolio_category/multicopter/)
-  * [Fixed wing](http://px4.io/portfolio_category/vtol/)
-  * [VTOL](http://px4.io/portfolio_category/plane/)
+  * [Fixed wing](http://px4.io/portfolio_category/plane/)
+  * [VTOL](http://px4.io/portfolio_category/vtol/)
 *   Releases
   * [Downloads](https://github.com/PX4/Firmware/releases)
 

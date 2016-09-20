@@ -65,6 +65,7 @@ enum NAV_CMD {
 	NAV_CMD_DO_SET_SERVO=183,
 	NAV_CMD_DO_REPEAT_SERVO=184,
 	NAV_CMD_DO_DIGICAM_CONTROL=203,
+	NAV_CMD_DO_SET_CAM_TRIGG_DIST=206,
 	NAV_CMD_DO_VTOL_TRANSITION=3000,
 	NAV_CMD_INVALID=UINT16_MAX /* ensure that casting a large number results in a specific error */
 };
@@ -105,6 +106,7 @@ struct mission_item_s {
 	unsigned do_jump_current_count;	/**< count how many times the jump has been done	*/
 	float params[7];		/**< array to store mission command values for MAV_FRAME_MISSION ***/
 	int8_t frame;			/**< mission frame ***/
+	bool force_heading;		/**< heading needs to be reached ***/
 };
 #pragma pack(pop)
 #include <uORB/topics/mission.h>

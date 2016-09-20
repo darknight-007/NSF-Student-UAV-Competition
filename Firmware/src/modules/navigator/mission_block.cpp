@@ -37,6 +37,7 @@
  *
  * @author Julian Oes <julian@oes.ch>
  * @author Sander Smeets <sander@droneslab.com>
+ * @author Andreas Antener <andreas@uaventure.com>
  */
 
 #include <sys/types.h>
@@ -49,6 +50,7 @@
 #include <systemlib/err.h>
 #include <geo/geo.h>
 #include <mavlink/mavlink_log.h>
+#include <mathlib/mathlib.h>
 
 #include <uORB/uORB.h>
 #include <uORB/topics/actuator_controls.h>
@@ -68,9 +70,14 @@ MissionBlock::MissionBlock(Navigator *navigator, const char *name) :
 	_waypoint_yaw_reached(false),
 	_time_first_inside_orbit(0),
 	_action_start(0),
+	_time_wp_reached(0),
 	_actuators{},
 	_actuator_pub(nullptr),
-	_cmd_pub(nullptr)
+	_cmd_pub(nullptr),
+	_param_yaw_timeout(this, "MIS_YAW_TMT", false),
+	_param_yaw_err(this, "MIS_YAW_ERR", false),
+	_param_vtol_wv_land(this, "VT_WV_LND_EN", false),
+	_param_vtol_wv_loiter(this, "VT_WV_LTR_EN", false)
 {
 }
 
@@ -96,6 +103,7 @@ MissionBlock::is_mission_item_reached()
 			return false;
 
 		case NAV_CMD_DO_DIGICAM_CONTROL:
+		case NAV_CMD_DO_SET_CAM_TRIGG_DIST:
 			return true;
 
 		case NAV_CMD_DO_VTOL_TRANSITION:
@@ -172,9 +180,15 @@ MissionBlock::is_mission_item_reached()
 				_waypoint_position_reached = true;
 			}
 		}
+
+		if (_waypoint_position_reached) {
+			// reached just now
+			_time_wp_reached = now;
+		}
 	}
 
 	/* Check if the waypoint and the requested yaw setpoint. */
+
 	if (_waypoint_position_reached && !_waypoint_yaw_reached) {
 
 		/* TODO: removed takeoff, why? */
@@ -183,8 +197,17 @@ MissionBlock::is_mission_item_reached()
 			/* check yaw if defined only for rotary wing except takeoff */
 			float yaw_err = _wrap_pi(_mission_item.yaw - _navigator->get_global_position()->yaw);
 
-			if (fabsf(yaw_err) < 0.2f) { /* TODO: get rid of magic number */
+			/* accept yaw if reached or if timeout is set in which case we ignore not forced headings */
+			if (fabsf(yaw_err) < math::radians(_param_yaw_err.get())
+					|| (_param_yaw_timeout.get() >= FLT_EPSILON && !_mission_item.force_heading)) {
 				_waypoint_yaw_reached = true;
+			}
+
+			/* if heading needs to be reached, the timeout is enabled and we don't make it, abort mission */
+			if (!_waypoint_yaw_reached && _mission_item.force_heading &&
+						_param_yaw_timeout.get() >= FLT_EPSILON &&
+						now - _time_wp_reached >= (hrt_abstime)_param_yaw_timeout.get() * 1e6f) {
+				_navigator->set_mission_failure("unable to reach heading within timeout");
 			}
 
 		} else {
@@ -218,6 +241,7 @@ MissionBlock::reset_mission_item_reached()
 	_waypoint_position_reached = false;
 	_waypoint_yaw_reached = false;
 	_time_first_inside_orbit = 0;
+	_time_wp_reached = 0;
 }
 
 void
@@ -284,6 +308,7 @@ MissionBlock::item_contains_position(const struct mission_item_s *item)
 {
 	// XXX: maybe extend that check onto item properties
 	if (item->nav_cmd == NAV_CMD_DO_DIGICAM_CONTROL ||
+			item->nav_cmd == NAV_CMD_DO_SET_CAM_TRIGG_DIST ||
 			item->nav_cmd == NAV_CMD_DO_VTOL_TRANSITION ||
 			item->nav_cmd == NAV_CMD_DO_SET_SERVO) {
 		return false;
@@ -310,6 +335,7 @@ MissionBlock::mission_item_to_position_setpoint(const struct mission_item_s *ite
 	sp->loiter_direction = item->loiter_direction;
 	sp->pitch_min = item->pitch_min;
 	sp->acceptance_radius = item->acceptance_radius;
+	sp->disable_mc_yaw_control = false;
 
 	switch (item->nav_cmd) {
 	case NAV_CMD_IDLE:
@@ -322,12 +348,18 @@ MissionBlock::mission_item_to_position_setpoint(const struct mission_item_s *ite
 
 	case NAV_CMD_LAND:
 		sp->type = position_setpoint_s::SETPOINT_TYPE_LAND;
+		if(_navigator->get_vstatus()->is_vtol && _param_vtol_wv_land.get()){
+			sp->disable_mc_yaw_control = true;
+		}
 		break;
 
 	case NAV_CMD_LOITER_TIME_LIMIT:
 	case NAV_CMD_LOITER_TURN_COUNT:
 	case NAV_CMD_LOITER_UNLIMITED:
 		sp->type = position_setpoint_s::SETPOINT_TYPE_LOITER;
+		if(_navigator->get_vstatus()->is_vtol && _param_vtol_wv_loiter.get()){
+			sp->disable_mc_yaw_control = true;
+		}
 		break;
 
 	default:
