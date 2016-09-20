@@ -1,0 +1,24 @@
+#!nsh
+#
+# @name Caipiroshka Duo Tailsitter
+#
+# @type VTOL Duo Tailsitter
+#
+# @output MAIN1 motor left
+# @output MAIN2 motor right
+# @output MAIN5 elevon left
+# @output MAIN6 elevon right
+#
+# @maintainer Roman Bapst <roman@px4.io>
+#
+
+sh /etc/init.d/rc.vtol_defaults
+
+set MIXER caipirinha_vtol
+
+set PWM_OUT 12
+set PWM_MAX 2000
+set PWM_RATE 400
+param set VT_MOT_COUNT 2
+param set VT_IDLE_PWM_MC  1080
+param set VT_TYPE 0
