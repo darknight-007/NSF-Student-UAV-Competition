@@ -5,16 +5,22 @@ testing offboard positon control with a simple takeoff script
 import rospy
 from mavros_msgs.msg import State
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
+import math
+import numpy
 
-TAKEOFF_HEIGHT = 5
-TAKEOFF_INCREMENT = 0.05
+
+
 
 
 class OffbPosCtl:
     curr_pose = PoseStamped()
+    waypointIndex = 0
+    distThreshold=0.1
 
     des_pose = PoseStamped()
     isReadyToFly = False
+    locations = numpy.matrix([[0, 0, 2], [10, 10, 2], [10, 5, 2]])
+
 
     def __init__(self):
         rospy.init_node('offboard_test', anonymous=True)
@@ -28,10 +34,26 @@ class OffbPosCtl:
         print self.curr_pose
 
         while not rospy.is_shutdown():
-            if self.isReadyToFly:
-                self.des_pose.pose.position.x = 15
-                self.des_pose.pose.position.y = 15
-                self.des_pose.pose.position.z = 0.5
+            if self.isReadyToFly && self.waypointIndex < self.locations.size:
+                des_x = self.locations[self.waypointIndex, 0]
+                des_y = self.locations[self.waypointIndex, 1]
+                des_z = self.locations[self.waypointIndex, 2]
+                self.des_pose.pose.position.x = des_x
+                self.des_pose.pose.position.y = des_y
+                self.des_pose.pose.position.z = des_z
+
+                curr_x = self.curr_pose.pose.position.x;
+                curr_y = self.curr_pose.pose.position.y;
+                curr_z = self.curr_pose.pose.position.z;
+
+                dist = math.sqrt((curr_x - des_x)*(curr_x - des_x) + (curr_y - des_y)*(curr_y - des_y) + (curr_z - des_z)*(curr_z - des_z))
+                if dist < self.distThreshold:
+                    print "Dist thresh hit"
+                    self.waypointIndex += 1
+
+                print dist, curr_x, curr_y, curr_z, self.waypointIndex
+
+
             pose_pub.publish(self.des_pose)
             rate.sleep()
 
