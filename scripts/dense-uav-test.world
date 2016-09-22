@@ -1,0 +1,54 @@
+<sdf version='1.5'>
+  <world name='nsf-student-competition-test-world'>
+   <physics name='default_physics' default='0' type='ode'>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+      <gravity>0 0 -9.8</gravity>
+      <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+    </physics>
+  <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>39.9412823765083</latitude_deg>
+      <longitude_deg>-75.19882472063426</longitude_deg>
+      <elevation>5.8</elevation>
+      <heading_deg>5.458</heading_deg>
+  </spherical_coordinates>
+  <include>
+    <uri>model://sun</uri>
+  </include>
+  <include>
+      <uri>model://ground_plane</uri>
+  </include>
+  <include>
+      <uri>model://f450</uri>
+      <pose frame=''>0.0 0.0 0.0 0 0 0</pose>
+  </include>
+  <include>
+      <uri>model://create</uri>
+      <pose frame=''>2.0 0.0 0.0 0 0 0</pose>
+  </include>
+  <include>
+  <uri>model://gas_station</uri>
+      <name>gas_station</name>
+      <pose frame=''>20.0 0.0 0.0 0 0 0</pose>
+  </include>
+  <include>
+  <uri>model://asphalt_plane</uri>
+      <name>asphalt_plane</name>
+      <pose frame=''>0.0 0.0 0.0 0 0 0</pose>
+  </include>
+  <include>
+     <uri>model://trap</uri>
+      <name>mosquito_trap</name>
+      <pose frame=''>5.0 5.0 0.0 0 0 0</pose>
+  </include>
+  <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose frame=''>0.995076 -6.88492 4.48213 0 0.5782 1.69008</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
+  </world>
+</sdf>

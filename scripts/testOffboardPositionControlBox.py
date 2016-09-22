@@ -19,14 +19,12 @@ class OffbPosCtl:
 
     des_pose = PoseStamped()
     isReadyToFly = False
-    locations = numpy.matrix([[0, 0, 2],
-                              [0, 8, 2],
-                              [8, 8, 5],
-                              [8, 0, 10],
-                              [7, 1, 2],
-                              [6, 2, 2],
-                              [4, 3, 2],
-                              [0, 0, 2]
+    locations = numpy.matrix([[0, 0, 2, 0, 0, 0],
+                              [8, 8, 2, 0, 0, 0],
+                              [8, 30, 2, 0, 0, 0],
+                              [20, 30, 2, 0, 0, 0],
+                              [20, 0, 2, 0, 0, 0],
+                              [0, 0, 2, 0, 0, 0]
                               ])
 
 
@@ -49,6 +47,7 @@ class OffbPosCtl:
                 self.des_pose.pose.position.x = des_x
                 self.des_pose.pose.position.y = des_y
                 self.des_pose.pose.position.z = des_z
+
 
                 curr_x = self.curr_pose.pose.position.x
                 curr_y = self.curr_pose.pose.position.y
