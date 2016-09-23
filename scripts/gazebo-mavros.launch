@@ -10,7 +10,7 @@
   <arg name="debug" default="false"/>
   <arg name="physics" default="ode"/>
   <arg name="verbose" default="false"/>
-  <arg name="world_name" default="$(find mavros)/launch/dense-uav-test.world"/> <!-- Note: the world_name is with respect to GAZEBO_RESOURCE_PATH environmental variable -->
+  <arg name="world_name" default="$(find mavros)/launch/dense-uav-test-asphalt-multiple-tiles.world"/> <!-- Note: the world_name is with respect to GAZEBO_RESOURCE_PATH environmental variable -->
 
 	<arg name="fcu_url" default="udp://:14540@127.0.0.1:14557" />
 	<arg name="gcs_url" default="" />
