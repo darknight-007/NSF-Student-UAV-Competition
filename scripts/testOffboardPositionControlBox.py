@@ -15,16 +15,25 @@ import numpy
 class OffbPosCtl:
     curr_pose = PoseStamped()
     waypointIndex = 0
-    distThreshold= 0.4
+    distThreshold = 0.4
+    sim_ctr = 1
 
     des_pose = PoseStamped()
     isReadyToFly = False
-    locations = numpy.matrix([[0, 0, 2, 0, 0, 0],
-                              [8, 8, 2, 0, 0, 0],
-                              [8, 30, 2, 0, 0, 0],
-                              [20, 30, 2, 0, 0, 0],
-                              [20, 0, 2, 0, 0, 0],
-                              [0, 0, 2, 0, 0, 0]
+    # locations = numpy.matrix([[0, 0, 2, 0, 0, 0],
+    #                           [8, 8, 2, 0, 0, 0],
+    #                           [0, 0, 2, 0, 0, 0]
+    #                           ])
+
+    locations = numpy.matrix([[0, 0, 2, 0, 0, -0.48717451, -0.87330464],
+                              [8, 8, 2, 0, 0, -0.48717451, -0.87330464],
+                              [8, 30, 2, 0, 0, -0.48717451, -0.87330464],
+                              [8, 30, 0.2, 0, 0, -0.48717451, -0.87330464],
+                              [25.3, 30, 2, -0.,  0.,  0.99902148, -0.04422762],
+                              [20, 0, 2, -0.,  0.,  0.99902148, -0.04422762],
+                              [20, 0, 0.2, -0.,  0.,  0.99902148, -0.04422762],
+                              [0, 0, 2, 0, 0, -0.48717451, -0.87330464],
+                              [0, 0, 0, 0, 0, -0.48717451, -0.87330464]
                               ])
 
 
@@ -37,16 +46,27 @@ class OffbPosCtl:
         rate = rospy.Rate(10)  # Hz
         rate.sleep()
         self.des_pose = self.copy_pose(self.curr_pose)
-        print self.curr_pose
+        shape = self.locations.shape
+
 
         while not rospy.is_shutdown():
-            if self.isReadyToFly and self.waypointIndex < self.locations.size:
+            print self.sim_ctr, shape[0], self.waypointIndex
+            if self.waypointIndex is shape[0]:
+                self.waypointIndex = 0
+                self.sim_ctr += 1
+
+            if self.isReadyToFly:
+
                 des_x = self.locations[self.waypointIndex, 0]
                 des_y = self.locations[self.waypointIndex, 1]
                 des_z = self.locations[self.waypointIndex, 2]
                 self.des_pose.pose.position.x = des_x
                 self.des_pose.pose.position.y = des_y
                 self.des_pose.pose.position.z = des_z
+                self.des_pose.pose.orientation.x = self.locations[self.waypointIndex, 3]
+                self.des_pose.pose.orientation.y = self.locations[self.waypointIndex, 4]
+                self.des_pose.pose.orientation.z = self.locations[self.waypointIndex, 5]
+                self.des_pose.pose.orientation.w = self.locations[self.waypointIndex, 6]
 
 
                 curr_x = self.curr_pose.pose.position.x
@@ -54,10 +74,10 @@ class OffbPosCtl:
                 curr_z = self.curr_pose.pose.position.z
 
                 dist = math.sqrt((curr_x - des_x)*(curr_x - des_x) + (curr_y - des_y)*(curr_y - des_y) + (curr_z - des_z)*(curr_z - des_z))
-                if dist < self.distThreshold and self.waypointIndex < self.locations.size:
+                if dist < self.distThreshold:
                     self.waypointIndex += 1
 
-                print dist, curr_x, curr_y, curr_z, self.waypointIndex
+                # print dist, curr_x, curr_y, curr_z, self.waypointIndex
             pose_pub.publish(self.des_pose)
             rate.sleep()
 

@@ -41,7 +41,7 @@
   <include>
      <uri>model://trap</uri>
       <name>mosquito_trap</name>
-      <pose frame=''>5.0 5.0 0.0 0 0 0</pose>
+      <pose frame=''>8, 30, 0, 0 0 0</pose>
   </include>
   <gui fullscreen='0'>
       <camera name='user_camera'>
